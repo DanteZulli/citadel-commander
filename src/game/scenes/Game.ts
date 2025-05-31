@@ -13,11 +13,8 @@ export class Game extends Scene {
     private turrets: Turret[] = [];
     private towerPositions: Phaser.Math.Vector2[] = [];
     private enemyPath: Phaser.Math.Vector2[] = [];
-    private livesText: Phaser.GameObjects.Text;
-    private moneyText: Phaser.GameObjects.Text;
-    private waveText: Phaser.GameObjects.Text;
     private waveInProgress: boolean = false;
-    private startWaveButton: Phaser.GameObjects.Text;
+    private waveCheckTimer?: Phaser.Time.TimerEvent;
 
     constructor() {
         super('Game');
@@ -27,15 +24,22 @@ export class Game extends Scene {
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x000000);
 
+        // Asegurarse de que el estado está limpio al iniciar
+        this.resetGameState();
+        
         this.setupPath();
         this.setupTowerPositions();
-        this.createUI();
-          // Event handler para cuando un enemigo llega al final
+        // Notificar que estamos en la escena de juego
+        window.dispatchEvent(new CustomEvent('gameSceneChange', { detail: 'Game' }));
+        this.updateUI();
+
+        // Event handler para cuando un enemigo llega al final
         this.events.on('enemyReachedEnd', (_enemy: Goblin) => {
             this.lives--;
             this.updateUI();
             
             if (this.lives <= 0) {
+                this.cleanupScene();
                 this.scene.start('GameOver');
             }
         });
@@ -46,78 +50,36 @@ export class Game extends Scene {
             this.updateUI();
         });
 
-        EventBus.emit('current-scene-ready', this);
-    }    private createUI() {
-        // Fondo del menú lateral
-        const menuBg = this.add.rectangle(924, 0, 200, 768, 0x222222)
-            .setOrigin(0, 0);
-
-        // UI básica (stats)
-        this.livesText = this.add.text(20, 20, `Lives: ${this.lives}`, {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff'
+        // Event handler para iniciar oleada desde el menú externo
+        this.game.events.on('startWave', () => {
+            this.startWave();
         });
 
-        this.moneyText = this.add.text(20, 50, `Money: ${this.money}`, {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff'
-        });
-
-        this.waveText = this.add.text(20, 80, `Wave: ${this.wave}/${this.maxWaves}`, {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff'
-        });
-
-        // Menú lateral
-        const menuTitle = this.add.text(1024, 30, 'MENU', {
-            fontFamily: 'Arial',
-            fontSize: '28px',
-            color: '#ffffff'
-        }).setOrigin(0.5);        // Botón para iniciar la oleada
-        this.startWaveButton = this.add.text(1024, 100, 'Start Wave', {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff',
-            backgroundColor: '#333333',
-            padding: { x: 15, y: 10 }
-        })
-        .setOrigin(0.5)
-        .setInteractive()        .on('pointerover', () => {
-            if (!this.waveInProgress) {
-                this.startWaveButton.setTint(0x999999);
-            }
-        })
-        .on('pointerout', function(this: Phaser.GameObjects.Text) {
-            this.clearTint();
-        })
-        .on('pointerdown', () => {
-            if (!this.waveInProgress) {
-                this.startWave();
-            }
-        });
-
-        // Botón para volver al menú
-        this.add.text(1024, 160, 'Main Menu', {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff',
-            backgroundColor: '#333333',
-            padding: { x: 15, y: 10 }
-        })
-        .setOrigin(0.5)
-        .setInteractive()
-        .on('pointerover', function(this: Phaser.GameObjects.Text) {
-            this.setTint(0x999999);
-        })
-        .on('pointerout', function(this: Phaser.GameObjects.Text) {
-            this.clearTint();
-        })
-        .on('pointerdown', () => {
+        // Event handler para volver al menú desde el menú externo
+        this.game.events.on('returnToMenu', () => {
+            this.cleanupScene();
+            window.dispatchEvent(new CustomEvent('gameSceneChange', { detail: 'MainMenu' }));
             this.scene.start('MainMenu');
         });
+
+        // Event handler para reintentar desde el game over
+        this.game.events.on('retry', () => {
+            this.scene.start('Game');
+        });
+
+        EventBus.emit('current-scene-ready', this);
+    }
+
+    private cleanupScene() {
+        // Remover todos los event listeners
+        this.events.removeAllListeners('enemyReachedEnd');
+        this.events.removeAllListeners('enemyKilled');
+        this.game.events.removeListener('startWave');
+        this.game.events.removeListener('returnToMenu');
+        this.game.events.removeListener('retry');
+        
+        // Resetear el estado del juego
+        this.resetGameState();
     }
 
     private setupPath() {
@@ -142,9 +104,7 @@ export class Game extends Scene {
         }
 
         graphics.strokePath();
-    }
-
-    private setupTowerPositions() {
+    }    private setupTowerPositions() {
         // Definir posiciones posibles para las torres
         this.towerPositions = [
             new Phaser.Math.Vector2(250, 200),
@@ -155,7 +115,7 @@ export class Game extends Scene {
 
         // Mostrar las posiciones disponibles
         this.towerPositions.forEach(pos => {
-            const point = this.add.circle(pos.x, pos.y, 15, 0x333333)
+            this.add.circle(pos.x, pos.y, 15, 0x333333)
                 .setInteractive()
                 .on('pointerdown', () => this.tryPlaceTurret(pos));
         });
@@ -170,15 +130,20 @@ export class Game extends Scene {
             this.turrets.push(turret);
             this.updateUI();
         }
-    }    private startWave() {
+    }
+
+    private startWave() {
         if (this.wave >= this.maxWaves || this.waveInProgress) return;
         
         this.waveInProgress = true;
         this.wave++;
         const enemyCount = 5 + (this.wave * 2); // Aumenta la cantidad de enemigos por oleada
+        this.updateUI();
         
-        // Actualizar visualmente el botón
-        this.startWaveButton.setColor('#666666');
+        // Limpiar el temporizador anterior si existe
+        if (this.waveCheckTimer) {
+            this.waveCheckTimer.destroy();
+        }
         
         // Spawner de enemigos
         let spawned = 0;
@@ -193,12 +158,17 @@ export class Game extends Scene {
                     spawnInterval.destroy();
                     
                     // Configurar un temporizador para verificar cuando todos los enemigos han sido eliminados
-                    this.time.addEvent({
+                    this.waveCheckTimer = this.time.addEvent({
                         delay: 100,
                         callback: () => {
                             if (this.enemies.length === 0) {
                                 this.waveInProgress = false;
-                                this.startWaveButton.setColor('#ffffff');
+                                this.updateUI();
+                                // Limpiar el temporizador cuando la oleada termine
+                                if (this.waveCheckTimer) {
+                                    this.waveCheckTimer.destroy();
+                                    this.waveCheckTimer = undefined;
+                                }
                             }
                         },
                         loop: true
@@ -207,14 +177,42 @@ export class Game extends Scene {
             },
             repeat: enemyCount - 1
         });
-
-        this.updateUI();
+    }    private updateUI() {
+        // Enviar actualización de stats al componente React
+        window.dispatchEvent(new CustomEvent('gameStatsUpdate', {
+            detail: {
+                lives: this.lives,
+                money: this.money,
+                wave: this.wave,
+                maxWaves: this.maxWaves,
+                waveInProgress: this.waveInProgress
+            }
+        }));
     }
 
-    private updateUI() {
-        this.livesText.setText(`Lives: ${this.lives}`);
-        this.moneyText.setText(`Money: ${this.money}`);
-        this.waveText.setText(`Wave: ${this.wave}/${this.maxWaves}`);
+    private resetGameState() {
+        // Reiniciar variables básicas
+        this.lives = 20;
+        this.money = 100;
+        this.wave = 0;
+        this.waveInProgress = false;
+
+        // Limpiar enemigos
+        this.enemies.forEach(enemy => enemy.destroy());
+        this.enemies = [];
+
+        // Limpiar torretas
+        this.turrets.forEach(turret => turret.destroy());
+        this.turrets = [];
+
+        // Limpiar temporizadores
+        if (this.waveCheckTimer) {
+            this.waveCheckTimer.destroy();
+            this.waveCheckTimer = undefined;
+        }
+
+        // Actualizar UI
+        this.updateUI();
     }
 
     update(time: number) {
