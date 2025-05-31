@@ -22,6 +22,9 @@ export class Preloader extends Scene
     {
         this.load.setPath('assets');
 
+        // Load background music
+        this.load.audio('background-music', 'sounds/Kim Lightyear - Kings And Dragons.mp3');
+
         // Load sound effects
         this.load.audio('enemy-death', 'sounds/sfx_death.ogg');
         this.load.audio('player-shoot', 'sounds/sfx_ray.ogg');

@@ -63,6 +63,13 @@ export class Game extends Scene {
     create() {        this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x000000);
         
+        // Start background music
+        const music = this.sound.add('background-music', {
+            volume: 0.3,
+            loop: true
+        });
+        music.play();
+        
         this.setupPath();
         this.setupTowerPositions();
         
