@@ -410,7 +410,8 @@ export class Game extends Scene {
         this.updateUI();
 
         // Create and start new wave
-        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);        this.currentWave.start(() => {
+        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);
+        this.currentWave.start(() => {
             this.waveInProgress = false;
             this.updateUI();
             

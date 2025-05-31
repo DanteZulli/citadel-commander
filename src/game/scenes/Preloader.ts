@@ -22,6 +22,14 @@ export class Preloader extends Scene
     {
         this.load.setPath('assets');
 
+        // Load sound effects
+        this.load.audio('enemy-death', 'sounds/sfx_death.ogg');
+        this.load.audio('player-shoot', 'sounds/sfx_ray.ogg');
+        this.load.audio('turret-shoot', 'sounds/sfx_explosionNormal.ogg');
+        this.load.audio('turret-build', 'sounds/sfx_switch.ogg');
+        this.load.audio('turret-upgrade', 'sounds/sfx_select.ogg');
+        this.load.audio('player-hurt', 'sounds/sfx_hurt.ogg');
+
         // Load GUI assets
         this.load.spritesheet('gui-heart', 'gui/gui-heart.png', {
             frameWidth: 16,

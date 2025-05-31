@@ -34,6 +34,9 @@ export class Turret extends Phaser.GameObjects.Container {
         this.damage = config.damage;
         this.cost = config.cost;
 
+        // Play build sound
+        scene.sound.play('turret-build');
+
         // Crear sprite y animación idle
         this.sprite = scene.add.sprite(0, 0, `tower-idle-${level}`);
         this.sprite.setOrigin(0.5, 1);
@@ -62,6 +65,9 @@ export class Turret extends Phaser.GameObjects.Container {
         
         const nextLevel = this.level + 1 as 1 | 2 | 3;
         const nextConfig = TURRET_CONFIGS[nextLevel];
+
+        // Play upgrade sound
+        this.scene.sound.play('turret-upgrade');
 
         // Detener cualquier animación actual
         this.sprite.stop();
@@ -152,6 +158,9 @@ export class Turret extends Phaser.GameObjects.Container {
     }
     
     private shoot(target: Enemy): void {
+        // Play shoot sound
+        this.scene.sound.play('turret-shoot');
+        
         // Crear un proyectil simple
         const bullet = this.scene.add.circle(this.x, this.y, 3, 0xffffff);
         
