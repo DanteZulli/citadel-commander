@@ -155,6 +155,42 @@ export class Preloader extends Scene
             frameWidth: 48,
             frameHeight: 48
         });
+
+        // Load tower sprites
+        // Idle states (base tower animations)
+        this.load.spritesheet('tower-idle-1', 'tower/idle/1.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+        this.load.spritesheet('tower-idle-2', 'tower/idle/2.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+        this.load.spritesheet('tower-idle-3', 'tower/idle/3.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+
+        // Upgrade animations
+        this.load.spritesheet('tower-upgrade-1', 'tower/upgrade/1.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+        this.load.spritesheet('tower-upgrade-2', 'tower/upgrade/2.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+        this.load.spritesheet('tower-upgrade-3', 'tower/upgrade/3.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+        this.load.spritesheet('tower-upgrade-4', 'tower/upgrade/4.png', {
+            frameWidth: 70,
+            frameHeight: 130
+        });
+
+        // Cargar sprite para lugares de construcción
+        this.load.image('tower-spot', 'tower/0.png');
     }
 
     create ()

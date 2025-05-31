@@ -177,7 +177,17 @@ export class Game extends Scene {
         }
 
         graphics.strokePath();
-    } private setupTowerPositions() {
+    }    private towerMenu?: {
+        bg: Phaser.GameObjects.Rectangle;
+        text: Phaser.GameObjects.Text;
+        preview: Phaser.GameObjects.Sprite;
+        position: Phaser.Math.Vector2;
+        cleanupListeners: () => void;
+    };
+
+    private towerSpots: Phaser.GameObjects.Sprite[] = [];
+
+    private setupTowerPositions() {
         // Definir posiciones posibles para las torres
         this.towerPositions = [
             new Phaser.Math.Vector2(250, 200),
@@ -186,23 +196,192 @@ export class Game extends Scene {
             new Phaser.Math.Vector2(350, 400)
         ];
 
-        // Mostrar las posiciones disponibles
+        // Crear sprites para lugares de construcción
         this.towerPositions.forEach(pos => {
-            this.add.circle(pos.x, pos.y, 15, 0x333333)
-                .setInteractive()
-                .on('pointerdown', () => this.tryPlaceTurret(pos));
+            const spot = this.add.sprite(pos.x, pos.y, 'tower-spot');
+            spot.setData('position', pos);
+            this.towerSpots.push(spot);
         });
     }
 
-    private tryPlaceTurret(position: Phaser.Math.Vector2) {
-        const turretCost = 50; // Costo base de una torreta
-
-        if (this.money >= turretCost) {
-            this.money -= turretCost;
-            const turret = new Turret(this, position.x, position.y);
-            this.turrets.push(turret);
-            this.updateUI();
+    public checkTowerPositionCollision(playerX: number, playerY: number): void {
+        let playerOnTowerSpot = false;
+        
+        for (const pos of this.towerPositions) {
+            const distance = Phaser.Math.Distance.Between(playerX, playerY, pos.x, pos.y);
+            if (distance < 30) { // Radio de colisión
+                playerOnTowerSpot = true;
+                if (!this.towerMenu || this.towerMenu.position !== pos) {
+                    // Si no hay menú o está en otra posición, mostrar nuevo menú
+                    this.showTurretOptions(pos);
+                }
+                break;
+            }
         }
+
+        // Si el jugador no está en ningún spot y hay un menú abierto, cerrarlo
+        if (!playerOnTowerSpot && this.towerMenu) {
+            this.cleanupTowerMenu();
+        }
+    }
+
+    private cleanupTowerMenu(): void {
+        if (this.towerMenu) {
+            this.towerMenu.bg.destroy();
+            this.towerMenu.text.destroy();
+            this.towerMenu.preview.destroy();
+            this.towerMenu.cleanupListeners();
+            this.towerMenu = undefined;
+        }
+    }
+
+    private showTurretOptions(position: Phaser.Math.Vector2) {
+        // Limpiar menú existente si lo hay
+        this.cleanupTowerMenu();
+
+        const existingTurret = this.turrets.find(t => 
+            t.x === position.x && t.y === position.y
+        );
+
+        // Crear el menú en la esquina superior izquierda
+        const menuBg = this.add.rectangle(120, 80, 240, 160, 0x000000, 0.8);
+        let textContent = 'Selecciona nivel:\n';
+
+        // Preview sprite
+        let previewSprite;
+        if (existingTurret) {
+            const currentLevel = existingTurret.getLevel();
+            const upgradeCost = existingTurret.getUpgradeCost();
+            
+            // Mostrar la torre actual
+            previewSprite = this.add.sprite(120, 120, `tower-idle-${currentLevel}`);
+            previewSprite.play(`tower-idle-${currentLevel}-anim`);
+            
+            if (currentLevel < 3) {
+                const nextLevel = currentLevel + 1;
+                textContent += `\nPresiona ${nextLevel} para mejorar\nCosto: $${upgradeCost}`;
+                textContent += this.money >= upgradeCost ? '' : '\n(Sin dinero)';
+            } else {
+                textContent += '\nNivel máximo alcanzado';
+            }
+        } else {
+            const options = [
+                { level: 1, cost: 30 },
+                { level: 2, cost: 60 },
+                { level: 3, cost: 120 }
+            ];
+
+            options.forEach(({ level, cost }) => {
+                const available = this.money >= cost;
+                textContent += `\n${level}: $${cost}`;
+                textContent += available ? '' : ' (Sin dinero)';
+            });
+
+            // Mostrar preview del nivel 1 por defecto
+            previewSprite = this.add.sprite(120, 120, 'tower-idle-1');
+            previewSprite.play('tower-idle-1-anim');
+        }
+
+        previewSprite.setScale(0.8);
+
+        const text = this.add.text(20, 20, textContent, { 
+            fontSize: '14px',
+            color: '#ffffff',
+            align: 'left'
+        });
+
+        let cleanupListeners = () => {
+            this.input.keyboard?.removeListener('keydown-ONE');
+            this.input.keyboard?.removeListener('keydown-TWO');
+            this.input.keyboard?.removeListener('keydown-THREE');
+        };
+
+        // Solo agregar listeners si no hay torreta o si se puede mejorar
+        if (!existingTurret) {
+            // Listener para teclas de nueva torre
+            this.input.keyboard?.on('keydown-ONE', () => {
+                if (this.money >= 30) {
+                    this.money -= 30;
+                    const turret = new Turret(this, position.x, position.y, 1);
+                    this.turrets.push(turret);
+                    // Ocultar el spot de construcción
+                    const spot = this.towerSpots.find(s => s.getData('position') === position);
+                    if (spot) spot.setVisible(false);
+                    this.updateUI();
+                    this.showTurretOptions(position); // Actualizar menú
+                }
+            });
+
+            this.input.keyboard?.on('keydown-TWO', () => {
+                if (this.money >= 60) {
+                    this.money -= 60;
+                    const turret = new Turret(this, position.x, position.y, 2);
+                    this.turrets.push(turret);
+                    // Ocultar el spot de construcción
+                    const spot = this.towerSpots.find(s => s.getData('position') === position);
+                    if (spot) spot.setVisible(false);
+                    this.updateUI();
+                    this.showTurretOptions(position); // Actualizar menú
+                }
+            });
+
+            this.input.keyboard?.on('keydown-THREE', () => {
+                if (this.money >= 120) {
+                    this.money -= 120;
+                    const turret = new Turret(this, position.x, position.y, 3);
+                    this.turrets.push(turret);
+                    // Ocultar el spot de construcción
+                    const spot = this.towerSpots.find(s => s.getData('position') === position);
+                    if (spot) spot.setVisible(false);
+                    this.updateUI();
+                    this.showTurretOptions(position); // Actualizar menú
+                }
+            });
+        } else {
+            // Listener para mejora
+            const nextLevel = existingTurret.getLevel() + 1;
+            if (nextLevel <= 3) {
+                // Usar los mismos códigos de tecla que para construir
+                const keyMap: Record<number, string> = {
+                    1: 'keydown-ONE',
+                    2: 'keydown-TWO',
+                    3: 'keydown-THREE'
+                };
+                
+                const keyCode = keyMap[nextLevel];
+                this.input.keyboard?.on(keyCode, () => {
+                    console.log('Intento de mejora al nivel:', nextLevel); // Debug
+                    const upgradeCost = existingTurret.getUpgradeCost();
+                    if (this.money >= upgradeCost) {
+                        this.money -= upgradeCost;
+                        const success = existingTurret.upgrade();
+                        if (success) {
+                            console.log('Mejora exitosa al nivel:', nextLevel); // Debug
+                            this.updateUI();
+                            // Actualizar menú después de un breve delay para permitir la animación
+                            this.time.delayedCall(500, () => {
+                                this.showTurretOptions(position);
+                            });
+                        }
+                    }
+                });
+                
+                // Actualizar cleanupListeners para incluir la nueva tecla
+                const originalCleanup = cleanupListeners;
+                cleanupListeners = () => {
+                    originalCleanup();
+                    this.input.keyboard?.removeListener(keyCode);
+                };
+            }
+        }
+
+        this.towerMenu = {
+            bg: menuBg,
+            text: text,
+            preview: previewSprite,
+            position: position,
+            cleanupListeners
+        };
     }
 
     private startWave() {
@@ -263,6 +442,9 @@ export class Game extends Scene {
         // Limpiar torretas
         this.turrets.forEach(turret => turret.destroy());
         this.turrets = [];
+
+        // Resetear visibilidad de los spots de construcción
+        this.towerSpots.forEach(spot => spot.setVisible(true));
 
         // Actualizar UI
         this.updateUI();

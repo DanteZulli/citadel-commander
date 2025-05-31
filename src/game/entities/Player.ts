@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { Enemy } from './Enemy';
+import { Game } from '../scenes/Game';
 
 export class Player extends Phaser.GameObjects.Container {
     private sprite: Phaser.GameObjects.Sprite;
@@ -255,6 +256,9 @@ export class Player extends Phaser.GameObjects.Container {
 
         // Verificar colisiones con enemigos
         this.checkEnemyCollisions(enemies);
+
+        // Verificar colisiones con posiciones de torres
+        (this.scene as Game).checkTowerPositionCollision(this.x, this.y);
 
         // Sistema de disparo automático
         const target = this.findNearestEnemy(enemies);
