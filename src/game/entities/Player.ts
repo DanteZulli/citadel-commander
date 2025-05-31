@@ -8,6 +8,9 @@ export class Player extends Phaser.GameObjects.Container {
     private range: number = 75; // La mitad del rango de las torretas (150/2)
     private fireRate: number = 1000; // mismo rate que las torretas
     private lastShot: number = 0;
+    private isInvulnerable: boolean = false;
+    private invulnerabilityTimer?: Phaser.Time.TimerEvent;
+    private blinkEffect?: Phaser.Tweens.Tween;
     private cursors: {
         up: Phaser.Input.Keyboard.Key;
         down: Phaser.Input.Keyboard.Key;
@@ -48,6 +51,54 @@ export class Player extends Phaser.GameObjects.Container {
         }
         
         scene.add.existing(this);
+    }
+
+    private checkEnemyCollisions(enemies: Enemy[]): void {
+        if (this.isInvulnerable) return;
+
+        for (const enemy of enemies) {
+            const distance = Phaser.Math.Distance.Between(
+                this.x,
+                this.y,
+                enemy.x,
+                enemy.y
+            );
+
+            if (distance < 32) // Radio de colisión aproximado
+            {
+                this.takeDamage();
+                break;
+            }
+        }
+    }
+
+    private takeDamage(): void {
+        if (this.isInvulnerable) return;
+
+        // Notificar a la escena del daño
+        this.scene.events.emit('playerDamaged');
+        
+        // Activar invulnerabilidad
+        this.isInvulnerable = true;
+
+        // Crear efecto de parpadeo
+        this.blinkEffect = this.scene.tweens.add({
+            targets: this.sprite,
+            alpha: 0,
+            duration: 200,
+            yoyo: true,
+            repeat: 20, // 10 parpadeos en 2 segundos
+            ease: 'Linear'
+        });
+
+        // Timer para desactivar la invulnerabilidad
+        this.invulnerabilityTimer = this.scene.time.delayedCall(2000, () => {
+            this.isInvulnerable = false;
+            if (this.blinkEffect && this.blinkEffect.isPlaying()) {
+                this.blinkEffect.stop();
+            }
+            this.sprite.setAlpha(1);
+        });
     }
 
     private findNearestEnemy(enemies: Enemy[]): Enemy | null {
@@ -96,24 +147,28 @@ export class Player extends Phaser.GameObjects.Container {
 
         let newX = this.x;
         let newY = this.y;
+        let movementModifier = this.isInvulnerable ? 0.50 : 1; // Reducir velocidad si está invulnerable	
 
         // Calcular nuevo movimiento en X
         if (this.cursors.left.isDown) {
-            newX -= this.moveSpeed * (delta / 1000);
+            newX -= (this.moveSpeed * movementModifier) *  (delta / 1000);
         } else if (this.cursors.right.isDown) {
-            newX += this.moveSpeed * (delta / 1000);
+            newX += (this.moveSpeed * movementModifier) *  (delta / 1000);
         }
 
         // Calcular nuevo movimiento en Y
         if (this.cursors.up.isDown) {
-            newY -= this.moveSpeed * (delta / 1000);
+            newY -= (this.moveSpeed * movementModifier) *  (delta / 1000);
         } else if (this.cursors.down.isDown) {
-            newY += this.moveSpeed * (delta / 1000);
+            newY += (this.moveSpeed * movementModifier) *  (delta / 1000);
         }
 
         // Aplicar restricciones de límites
         this.x = Phaser.Math.Clamp(newX, this.bounds.left, this.bounds.right);
         this.y = Phaser.Math.Clamp(newY, this.bounds.top, this.bounds.bottom);
+
+        // Verificar colisiones con enemigos
+        this.checkEnemyCollisions(enemies);
 
         // Sistema de disparo automático
         const target = this.findNearestEnemy(enemies);
@@ -121,5 +176,15 @@ export class Player extends Phaser.GameObjects.Container {
             this.shoot(target);
             this.lastShot = time;
         }
+    }
+
+    public destroy(fromScene?: boolean): void {
+        if (this.blinkEffect && this.blinkEffect.isPlaying()) {
+            this.blinkEffect.stop();
+        }
+        if (this.invulnerabilityTimer && this.invulnerabilityTimer.getProgress() < 1) {
+            this.invulnerabilityTimer.destroy();
+        }
+        super.destroy(fromScene);
     }
 }
