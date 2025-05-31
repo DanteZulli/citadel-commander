@@ -2,6 +2,8 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { Turret } from '../entities/Turret';
 import { Goblin } from '../entities/Goblin';
+import { Slime } from '../entities/Slime';
+import { Enemy } from '../entities/Enemy';
 import { Player } from '../entities/Player';
 
 export class Game extends Scene {
@@ -10,7 +12,7 @@ export class Game extends Scene {
     private camera: Phaser.Cameras.Scene2D.Camera;
     private wave: number = 0;
     private maxWaves: number = 3;
-    private enemies: Goblin[] = [];
+    private enemies: Enemy[] = [];
     private turrets: Turret[] = [];
     private towerPositions: Phaser.Math.Vector2[] = [];
     private enemyPath: Phaser.Math.Vector2[] = [];
@@ -28,7 +30,7 @@ export class Game extends Scene {
 
         // Asegurarse de que el estado está limpio al iniciar
         this.resetGameState();
-        
+
         this.setupPath();
         this.setupTowerPositions();
         
@@ -50,7 +52,7 @@ export class Game extends Scene {
         this.events.on('enemyReachedEnd', (_enemy: Goblin) => {
             this.lives--;
             this.updateUI();
-            
+
             if (this.lives <= 0) {
                 this.cleanupScene();
                 this.scene.start('GameOver');
@@ -100,7 +102,7 @@ export class Game extends Scene {
         if (this.player) {
             this.player.destroy();
         }
-        
+
         // Resetear el estado del juego
         this.resetGameState();
     }
@@ -127,7 +129,7 @@ export class Game extends Scene {
         }
 
         graphics.strokePath();
-    }    private setupTowerPositions() {
+    } private setupTowerPositions() {
         // Definir posiciones posibles para las torres
         this.towerPositions = [
             new Phaser.Math.Vector2(250, 200),
@@ -146,7 +148,7 @@ export class Game extends Scene {
 
     private tryPlaceTurret(position: Phaser.Math.Vector2) {
         const turretCost = 50; // Costo base de una torreta
-        
+
         if (this.money >= turretCost) {
             this.money -= turretCost;
             const turret = new Turret(this, position.x, position.y);
@@ -157,29 +159,32 @@ export class Game extends Scene {
 
     private startWave() {
         if (this.wave >= this.maxWaves || this.waveInProgress) return;
-        
+
         this.waveInProgress = true;
         this.wave++;
         const enemyCount = 5 + (this.wave * 2); // Aumenta la cantidad de enemigos por oleada
         this.updateUI();
-        
+
         // Limpiar el temporizador anterior si existe
         if (this.waveCheckTimer) {
             this.waveCheckTimer.destroy();
         }
-        
+
         // Spawner de enemigos
         let spawned = 0;
         const spawnInterval = this.time.addEvent({
             delay: 1000,
             callback: () => {
-                const enemy = new Goblin(this, this.enemyPath);
+                // Alternar entre Goblin y Slime
+                const enemy = Math.random() < 0.5 ? 
+                    new Goblin(this, this.enemyPath) :
+                    new Slime(this, this.enemyPath);
                 this.enemies.push(enemy);
                 spawned++;
-                
+
                 if (spawned >= enemyCount) {
                     spawnInterval.destroy();
-                    
+
                     // Configurar un temporizador para verificar cuando todos los enemigos han sido eliminados
                     this.waveCheckTimer = this.time.addEvent({
                         delay: 100,
@@ -200,7 +205,9 @@ export class Game extends Scene {
             },
             repeat: enemyCount - 1
         });
-    }    private updateUI() {
+    }
+
+    private updateUI() {
         // Enviar actualización de stats al componente React
         window.dispatchEvent(new CustomEvent('gameStatsUpdate', {
             detail: {

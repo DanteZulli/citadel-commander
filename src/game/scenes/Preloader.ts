@@ -50,6 +50,35 @@ export class Preloader extends Scene
             frameWidth: 48,
             frameHeight: 48
         });
+
+        // Load slime sprites
+        // Walk animations
+        this.load.spritesheet('slime-walk-down', 'slime/D_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('slime-walk-side', 'slime/S_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('slime-walk-up', 'slime/U_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+
+        // Death animations
+        this.load.spritesheet('slime-death-down', 'slime/D_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('slime-death-side', 'slime/S_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('slime-death-up', 'slime/U_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
     }
 
     create ()

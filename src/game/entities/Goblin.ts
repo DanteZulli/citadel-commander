@@ -4,7 +4,7 @@ import { Enemy } from './Enemy';
 export class Goblin extends Enemy {
     constructor(scene: Scene, path: Phaser.Math.Vector2[]) {
         super(scene, path, {
-            health: 2,
+            health: 5,
             speed: 80,
             scale: 1.5,
             spriteSheets: {
