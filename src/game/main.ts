@@ -13,6 +13,7 @@ const config: Phaser.Types.Core.GameConfig = {
     height: 600,
     parent: 'game-container',
     backgroundColor: '#ffffff',
+    pixelArt: true, // Esto asegura que los sprites pixelados se vean nítidos al escalar
     scene: [
         Boot,
         Preloader,

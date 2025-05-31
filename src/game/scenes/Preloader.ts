@@ -21,7 +21,24 @@ export class Preloader extends Scene
     preload ()
     {
         this.load.setPath('assets');
-        
+
+        // Load GUI assets
+        this.load.spritesheet('gui-heart', 'gui/gui-heart.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+
+        this.load.spritesheet('gui-coin', 'gui/gui-coin.png', {
+            frameWidth: 12,
+            frameHeight: 13
+        });
+
+        this.load.spritesheet('gui-waves', 'gui/gui-waves.png', {
+            frameWidth: 10,
+            frameHeight: 11
+        });
+
+
         // Load goblin sprites
         // Walk animations
         this.load.spritesheet('goblin-walk-down', 'goblin/D_Walk.png', {

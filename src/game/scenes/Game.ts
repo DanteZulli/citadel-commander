@@ -7,6 +7,7 @@ import { Wave, WaveConfig } from '../entities/Wave';
 import { Player } from '../entities/Player';
 import { Turret } from '../entities/Turret';
 import { EventBus } from '../EventBus';
+import { GUI } from '../entities/GUI';
 
 export class Game extends Scene {
     private lives: number = 20;
@@ -20,6 +21,7 @@ export class Game extends Scene {
     private enemyPath: Phaser.Math.Vector2[] = [];
     private waveInProgress: boolean = false;
     private player: Player;
+    private gui: GUI;
 
     // Wave configurations
     private readonly waveConfigs: WaveConfig[] = [
@@ -61,15 +63,18 @@ export class Game extends Scene {
     create() {
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x000000);
-
-        // Asegurarse de que el estado está limpio al iniciar
-        this.resetGameState();
         
         this.setupPath();
         this.setupTowerPositions();
         
         // Crear el jugador
         this.player = new Player(this);
+
+        // Crear el GUI
+        this.gui = new GUI(this);
+
+        // Asegurarse de que el estado está limpio al iniciar
+        this.resetGameState();
 
         // Configurar tecla ENTER para iniciar oleada
         const enterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
@@ -149,6 +154,11 @@ export class Game extends Scene {
         // Limpiar el jugador
         if (this.player) {
             this.player.destroy();
+        }
+
+        // Limpiar el GUI
+        if (this.gui) {
+            this.gui.destroy();
         }
 
         // Resetear el estado del juego
@@ -235,6 +245,11 @@ export class Game extends Scene {
     }
 
     private updateUI() {
+        // Actualizar el GUI en la escena si existe
+        if (this.gui) {
+            this.gui.updateStats(this.lives, this.money, this.wave, this.maxWaves);
+        }
+
         // Enviar actualización de stats al componente React
         window.dispatchEvent(new CustomEvent('gameStatsUpdate', {
             detail: {
