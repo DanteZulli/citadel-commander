@@ -64,7 +64,9 @@ function App() {
     return (
         <div id="app" style={{ 
             display: 'flex', 
-            height: '100vh',
+            height: '90vh',
+            paddingTop: '1rem',
+            paddingBottom: '1rem',
             backgroundColor: '#000'
         }}>
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

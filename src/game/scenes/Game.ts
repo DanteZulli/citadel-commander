@@ -2,6 +2,7 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { Turret } from '../entities/Turret';
 import { Goblin } from '../entities/Goblin';
+import { Player } from '../entities/Player';
 
 export class Game extends Scene {
     private lives: number = 20;
@@ -15,6 +16,7 @@ export class Game extends Scene {
     private enemyPath: Phaser.Math.Vector2[] = [];
     private waveInProgress: boolean = false;
     private waveCheckTimer?: Phaser.Time.TimerEvent;
+    private player: Player;
 
     constructor() {
         super('Game');
@@ -29,6 +31,17 @@ export class Game extends Scene {
         
         this.setupPath();
         this.setupTowerPositions();
+        
+        // Crear el jugador
+        this.player = new Player(this);
+
+        // Configurar tecla ENTER para iniciar oleada
+        if (this.input.keyboard) {
+            this.input.keyboard.addKey('ENTER').on('down', () => {
+                this.startWave();
+            });
+        }
+
         // Notificar que estamos en la escena de juego
         window.dispatchEvent(new CustomEvent('gameSceneChange', { detail: 'Game' }));
         this.updateUI();
@@ -77,6 +90,16 @@ export class Game extends Scene {
         this.game.events.removeListener('startWave');
         this.game.events.removeListener('returnToMenu');
         this.game.events.removeListener('retry');
+        
+        // Limpiar el event listener del teclado
+        if (this.input.keyboard) {
+            this.input.keyboard.removeKey('ENTER');
+        }
+        
+        // Limpiar el jugador
+        if (this.player) {
+            this.player.destroy();
+        }
         
         // Resetear el estado del juego
         this.resetGameState();
@@ -215,7 +238,12 @@ export class Game extends Scene {
         this.updateUI();
     }
 
-    update(time: number) {
+    update(time: number, delta: number) {
+        // Actualizar el jugador
+        if (this.player) {
+            this.player.update(delta, time, this.enemies);
+        }
+
         // Actualizar las torretas
         this.turrets.forEach(turret => {
             turret.update(time, this.enemies);
