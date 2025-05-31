@@ -174,9 +174,7 @@ export class Game extends Scene {
 
         // Resetear el estado del juego
         this.resetGameState();
-    }
-
-    private setupPath() {
+    }    private setupPath() {
         // Definir el camino que seguirán los enemigos
         this.enemyPath = [
             new Phaser.Math.Vector2(0, 300),
@@ -186,18 +184,6 @@ export class Game extends Scene {
             new Phaser.Math.Vector2(400, 500),
             new Phaser.Math.Vector2(600, 500)
         ];
-
-        // Dibujar el camino
-        const graphics = this.add.graphics();
-        graphics.lineStyle(2, 0x333333);
-        graphics.beginPath();
-        graphics.moveTo(this.enemyPath[0].x, this.enemyPath[0].y);
-
-        for (let i = 1; i < this.enemyPath.length; i++) {
-            graphics.lineTo(this.enemyPath[i].x, this.enemyPath[i].y);
-        }
-
-        graphics.strokePath();
     }    private towerMenu?: {
         bg: Phaser.GameObjects.Rectangle;
         text: Phaser.GameObjects.Text;
