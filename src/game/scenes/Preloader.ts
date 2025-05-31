@@ -38,6 +38,11 @@ export class Preloader extends Scene
             frameHeight: 11
         });
 
+        // Load background
+        this.load.spritesheet('background', 'tiles/background.png', {
+            frameWidth: 800,
+            frameHeight: 600
+        });
 
         // Load player sprites
         // Fly animations (idle/movement)
