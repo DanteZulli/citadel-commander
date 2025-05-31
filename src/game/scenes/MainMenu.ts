@@ -7,7 +7,13 @@ export class MainMenu extends Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor(0x000000);        // Título del juego
+        this.cameras.main.setBackgroundColor(0x000000);
+        
+        // Agregar el background del menú
+        const background = this.add.sprite(400, 300, 'background-menu');
+        background.setOrigin(0.5, 0.5);
+
+        // Título del juego
         this.add.text(400, 200, 'CITADEL COMMANDER', {
             fontFamily: '"Press Start 2P"',
             fontSize: '32px',

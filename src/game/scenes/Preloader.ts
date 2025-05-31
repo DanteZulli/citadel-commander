@@ -52,6 +52,12 @@ export class Preloader extends Scene
             frameHeight: 600
         });
 
+        // Load background menu
+        this.load.spritesheet('background-menu', 'tiles/menu-bg.png', {
+            frameWidth: 800,
+            frameHeight: 600
+        });
+
         // Load player sprites
         // Fly animations (idle/movement)
         this.load.spritesheet('player-fly-down', 'player/D_Fly.png', {
