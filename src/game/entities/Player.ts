@@ -35,8 +35,8 @@ export class Player extends Phaser.GameObjects.Container {
         this.bounds = new Phaser.Geom.Rectangle(
             halfSize,          // x mínima
             halfSize,          // y mínima
-            width - halfSize,  // x máxima
-            height - halfSize  // y máxima
+            width - halfSize - 30,  // x máxima, numeros magicos para evitar que se salga del borde derecho
+            height - halfSize - 50  // y máxima, numeros magicos para evitar que se salga del borde inferior
         );
         
         // Configurar teclas WASD
@@ -151,16 +151,16 @@ export class Player extends Phaser.GameObjects.Container {
 
         // Calcular nuevo movimiento en X
         if (this.cursors.left.isDown) {
-            newX -= (this.moveSpeed * movementModifier) *  (delta / 1000);
+            newX -= (this.moveSpeed * movementModifier) * (delta / 1000);
         } else if (this.cursors.right.isDown) {
-            newX += (this.moveSpeed * movementModifier) *  (delta / 1000);
+            newX += (this.moveSpeed * movementModifier) * (delta / 1000);
         }
 
         // Calcular nuevo movimiento en Y
         if (this.cursors.up.isDown) {
-            newY -= (this.moveSpeed * movementModifier) *  (delta / 1000);
+            newY -= (this.moveSpeed * movementModifier) * (delta / 1000);
         } else if (this.cursors.down.isDown) {
-            newY += (this.moveSpeed * movementModifier) *  (delta / 1000);
+            newY += (this.moveSpeed * movementModifier) * (delta / 1000);
         }
 
         // Aplicar restricciones de límites
