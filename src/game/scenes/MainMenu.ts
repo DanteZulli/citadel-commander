@@ -13,7 +13,7 @@ export class MainMenu extends Scene
         this.add.text(512, 384, 'Menú Principal', {
             fontFamily: 'Arial',
             fontSize: '32px',
-            color: '#ffffff'
+            color: '#000000'
         }).setOrigin(0.5);
         
         EventBus.emit('current-scene-ready', this);
