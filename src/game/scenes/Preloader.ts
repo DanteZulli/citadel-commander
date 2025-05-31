@@ -22,6 +22,53 @@ export class Preloader extends Scene
     {
         this.load.setPath('assets');
         
+        // Load player sprites
+        // Fly animations (idle/movement)
+        this.load.spritesheet('player-fly-down', 'player/D_Fly.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+        this.load.spritesheet('player-fly-side', 'player/S_Fly.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+        this.load.spritesheet('player-fly-up', 'player/U_Fly.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+
+        // Attack animations
+        this.load.spritesheet('player-attack-down', 'player/D_Attack.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+        this.load.spritesheet('player-attack-side', 'player/S_Attack.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+        this.load.spritesheet('player-attack-up', 'player/U_Attack.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+
+        // Death animations
+        this.load.spritesheet('player-death-down', 'player/D_Death.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+        this.load.spritesheet('player-death-side', 'player/S_Death.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+        this.load.spritesheet('player-death-up', 'player/U_Death.png', {
+            frameWidth: 96,
+            frameHeight: 96
+        });
+
+        // Projectiles
+        this.load.image('player-projectile-1', 'player/Projectile1.png');
+        this.load.image('player-projectile-2', 'player/Projectile2.png');
+
         // Load goblin sprites
         // Walk animations
         this.load.spritesheet('goblin-walk-down', 'goblin/D_Walk.png', {
