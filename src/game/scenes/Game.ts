@@ -64,7 +64,7 @@ export class Game extends Scene {
 
         // Asegurarse de que el estado está limpio al iniciar
         this.resetGameState();
-
+        
         this.setupPath();
         this.setupTowerPositions();
         
@@ -72,9 +72,12 @@ export class Game extends Scene {
         this.player = new Player(this);
 
         // Configurar tecla ENTER para iniciar oleada
-        if (this.input.keyboard) {
-            this.input.keyboard.addKey('ENTER').on('down', () => {
-                this.startWave();
+        const enterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        if (enterKey) {
+            enterKey.on('down', () => {
+                if (!this.waveInProgress) {
+                    this.startWave();
+                }
             });
         }
 
@@ -86,7 +89,18 @@ export class Game extends Scene {
         this.events.on('enemyReachedEnd', (_enemy: Goblin) => {
             this.lives--;
             this.updateUI();
+            
+            if (this.lives <= 0) {
+                this.cleanupScene();
+                this.scene.start('GameOver');
+            }
+        });
 
+        // Event handler para cuando el jugador recibe daño
+        this.events.on('playerDamaged', () => {
+            this.lives--;
+            this.updateUI();
+            
             if (this.lives <= 0) {
                 this.cleanupScene();
                 this.scene.start('GameOver');
