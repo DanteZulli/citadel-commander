@@ -199,10 +199,14 @@ export class Game extends Scene {
     private setupTowerPositions() {
         // Definir posiciones posibles para las torres
         this.towerPositions = [
-            new Phaser.Math.Vector2(250, 200),
-            new Phaser.Math.Vector2(350, 200),
-            new Phaser.Math.Vector2(250, 400),
-            new Phaser.Math.Vector2(350, 400)
+            // Torre a la izquierda del primer tramo horizontal
+            new Phaser.Math.Vector2(150, 150),
+            // Torre a la derecha del primer tramo horizontal
+            new Phaser.Math.Vector2(450, 150),
+            // Torre cerca del inicio del camino
+            new Phaser.Math.Vector2(100, 380),
+            // Torre cerca del final del camino
+            new Phaser.Math.Vector2(550, 450)
         ];
 
         // Crear sprites para lugares de construcción
