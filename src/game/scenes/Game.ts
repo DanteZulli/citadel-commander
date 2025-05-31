@@ -60,8 +60,7 @@ export class Game extends Scene {
         super('Game');
     }
 
-    create() {
-        this.camera = this.cameras.main;
+    create() {        this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x000000);
         
         this.setupPath();
@@ -223,18 +222,12 @@ export class Game extends Scene {
         this.updateUI();
 
         // Create and start new wave
-        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);
-        this.currentWave.start(() => {
+        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);        this.currentWave.start(() => {
             this.waveInProgress = false;
             this.updateUI();
             
-            // Check if there are more waves to start
-            if (this.wave < this.maxWaves) {
-                // Add a delay between waves
-                this.time.delayedCall(2000, () => {
-                    this.startWave();
-                });
-            } else {
+            // Check if this was the last wave
+            if (this.wave >= this.maxWaves) {
                 // Game completed!
                 this.time.delayedCall(1000, () => {
                     this.cleanupScene();
@@ -245,10 +238,8 @@ export class Game extends Scene {
     }
 
     private updateUI() {
-        // Actualizar el GUI en la escena si existe
-        if (this.gui) {
-            this.gui.updateStats(this.lives, this.money, this.wave, this.maxWaves);
-        }
+        // Actualizar el GUI en la escena
+        this.gui.updateStats(this.lives, this.money, this.wave, this.maxWaves);
 
         // Enviar actualización de stats al componente React
         window.dispatchEvent(new CustomEvent('gameStatsUpdate', {
@@ -283,6 +274,11 @@ export class Game extends Scene {
         this.updateUI();
     }
 
+    private handleWaveState(): void {
+        const canStartNewWave = !this.currentWave || this.currentWave.isComplete();
+        this.gui.showWavePrompt(canStartNewWave);
+    }
+
     update(time: number, delta: number) {
         // Actualizar la wave actual
         if (this.currentWave) {
@@ -300,5 +296,7 @@ export class Game extends Scene {
                 turret.update(time, this.currentWave.getActiveEnemies());
             }
         });
+
+        this.handleWaveState();
     }
 }
