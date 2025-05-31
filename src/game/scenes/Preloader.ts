@@ -79,6 +79,35 @@ export class Preloader extends Scene
             frameWidth: 48,
             frameHeight: 48
         });
+
+        // Load wolf sprites
+        // Walk animations
+        this.load.spritesheet('wolf-walk-down', 'wolf/D_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('wolf-walk-side', 'wolf/S_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('wolf-walk-up', 'wolf/U_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+
+        // Death animations
+        this.load.spritesheet('wolf-death-down', 'wolf/D_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('wolf-death-side', 'wolf/S_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('wolf-death-up', 'wolf/U_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
     }
 
     create ()

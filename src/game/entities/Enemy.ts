@@ -42,8 +42,9 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
             this.sprite.setFlipX(false);
         }
         
-        // Reproducir la animación correspondiente
-        this.sprite.play(`walk-${this.currentDirection}`, true);
+        // Get enemy type and play the corresponding animation
+        const enemyType = this.spriteSheets.walk.down.split('-')[0];
+        this.sprite.play(`${enemyType}-walk-${this.currentDirection}`, true);
     }
     
     protected createAnimations(): void {
@@ -52,17 +53,23 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
         const directions = ['down', 'side', 'up'] as const;
         const types = ['walk', 'death'] as const;
 
+        // Get enemy type from the sprite key (e.g., 'goblin-walk-down' -> 'goblin')
+        const enemyType = this.spriteSheets.walk.down.split('-')[0];
+        
         for (const type of types) {
             for (const direction of directions) {
-                const key = `${type}-${direction}`;
+                const key = `${enemyType}-${type}-${direction}`;
                 const spriteKey = this.spriteSheets[type][direction];
                 
-                this.scene.anims.create({
-                    key: key,
-                    frames: this.scene.anims.generateFrameNumbers(spriteKey, { start: 0, end: 5 }),
-                    frameRate: 10,
-                    repeat: type === 'walk' ? -1 : 0
-                });
+                // Only create animation if it doesn't exist
+                if (!this.scene.anims.exists(key)) {
+                    this.scene.anims.create({
+                        key: key,
+                        frames: this.scene.anims.generateFrameNumbers(spriteKey, { start: 0, end: 5 }),
+                        frameRate: 10,
+                        repeat: type === 'walk' ? -1 : 0
+                    });
+                }
             }
         }
     }
@@ -112,8 +119,9 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
                 this.currentTween = undefined;
             }
 
-            // Play death animation based on current direction
-            const deathAnim = `death-${this.currentDirection}`;
+            // Get enemy type and play death animation
+            const enemyType = this.spriteSheets.walk.down.split('-')[0];
+            const deathAnim = `${enemyType}-death-${this.currentDirection}`;
             this.sprite.play(deathAnim);
             
             // Wait for death animation to complete before destroying

@@ -1,10 +1,12 @@
-import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
-import { Turret } from '../entities/Turret';
+import { Enemy } from '../entities/Enemy';
 import { Goblin } from '../entities/Goblin';
 import { Slime } from '../entities/Slime';
-import { Enemy } from '../entities/Enemy';
+import { Wolf } from '../entities/Wolf';
+import { Wave, WaveConfig } from '../entities/Wave';
 import { Player } from '../entities/Player';
+import { Turret } from '../entities/Turret';
+import { EventBus } from '../EventBus';
 
 export class Game extends Scene {
     private lives: number = 20;
@@ -12,13 +14,45 @@ export class Game extends Scene {
     private camera: Phaser.Cameras.Scene2D.Camera;
     private wave: number = 0;
     private maxWaves: number = 3;
-    private enemies: Enemy[] = [];
+    private currentWave?: Wave;
     private turrets: Turret[] = [];
     private towerPositions: Phaser.Math.Vector2[] = [];
     private enemyPath: Phaser.Math.Vector2[] = [];
     private waveInProgress: boolean = false;
-    private waveCheckTimer?: Phaser.Time.TimerEvent;
     private player: Player;
+
+    // Wave configurations
+    private readonly waveConfigs: WaveConfig[] = [
+        {
+            // Wave 1: Mostly slimes with some goblins
+            enemyCount: 10,
+            spawnInterval: 1200,
+            enemyWeights: [
+                { type: Slime, weight: 0.7 },
+                { type: Goblin, weight: 0.3 }
+            ]
+        },
+        {
+            // Wave 2: Mix of all enemies, more goblins
+            enemyCount: 15,
+            spawnInterval: 1000,
+            enemyWeights: [
+                { type: Slime, weight: 0.3 },
+                { type: Goblin, weight: 0.5 },
+                { type: Wolf, weight: 0.2 }
+            ]
+        },
+        {
+            // Wave 3: Harder wave with more wolves
+            enemyCount: 20,
+            spawnInterval: 800,
+            enemyWeights: [
+                { type: Slime, weight: 0.2 },
+                { type: Goblin, weight: 0.3 },
+                { type: Wolf, weight: 0.5 }
+            ]
+        }
+    ];
 
     constructor() {
         super('Game');
@@ -162,48 +196,27 @@ export class Game extends Scene {
 
         this.waveInProgress = true;
         this.wave++;
-        const enemyCount = 5 + (this.wave * 2); // Aumenta la cantidad de enemigos por oleada
         this.updateUI();
 
-        // Limpiar el temporizador anterior si existe
-        if (this.waveCheckTimer) {
-            this.waveCheckTimer.destroy();
-        }
-
-        // Spawner de enemigos
-        let spawned = 0;
-        const spawnInterval = this.time.addEvent({
-            delay: 1000,
-            callback: () => {
-                // Alternar entre Goblin y Slime
-                const enemy = Math.random() < 0.5 ? 
-                    new Goblin(this, this.enemyPath) :
-                    new Slime(this, this.enemyPath);
-                this.enemies.push(enemy);
-                spawned++;
-
-                if (spawned >= enemyCount) {
-                    spawnInterval.destroy();
-
-                    // Configurar un temporizador para verificar cuando todos los enemigos han sido eliminados
-                    this.waveCheckTimer = this.time.addEvent({
-                        delay: 100,
-                        callback: () => {
-                            if (this.enemies.length === 0) {
-                                this.waveInProgress = false;
-                                this.updateUI();
-                                // Limpiar el temporizador cuando la oleada termine
-                                if (this.waveCheckTimer) {
-                                    this.waveCheckTimer.destroy();
-                                    this.waveCheckTimer = undefined;
-                                }
-                            }
-                        },
-                        loop: true
-                    });
-                }
-            },
-            repeat: enemyCount - 1
+        // Create and start new wave
+        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);
+        this.currentWave.start(() => {
+            this.waveInProgress = false;
+            this.updateUI();
+            
+            // Check if there are more waves to start
+            if (this.wave < this.maxWaves) {
+                // Add a delay between waves
+                this.time.delayedCall(2000, () => {
+                    this.startWave();
+                });
+            } else {
+                // Game completed!
+                this.time.delayedCall(1000, () => {
+                    this.cleanupScene();
+                    this.scene.start('GameOver');
+                });
+            }
         });
     }
 
@@ -227,36 +240,36 @@ export class Game extends Scene {
         this.wave = 0;
         this.waveInProgress = false;
 
-        // Limpiar enemigos
-        this.enemies.forEach(enemy => enemy.destroy());
-        this.enemies = [];
+        // Stop current wave if exists
+        if (this.currentWave) {
+            this.currentWave.stop();
+            this.currentWave = undefined;
+        }
 
         // Limpiar torretas
         this.turrets.forEach(turret => turret.destroy());
         this.turrets = [];
-
-        // Limpiar temporizadores
-        if (this.waveCheckTimer) {
-            this.waveCheckTimer.destroy();
-            this.waveCheckTimer = undefined;
-        }
 
         // Actualizar UI
         this.updateUI();
     }
 
     update(time: number, delta: number) {
+        // Actualizar la wave actual
+        if (this.currentWave) {
+            this.currentWave.update();
+        }
+
         // Actualizar el jugador
         if (this.player) {
-            this.player.update(delta, time, this.enemies);
+            this.player.update(delta, time, this.currentWave ? this.currentWave.getActiveEnemies() : []);
         }
 
         // Actualizar las torretas
         this.turrets.forEach(turret => {
-            turret.update(time, this.enemies);
+            if (this.currentWave) {
+                turret.update(time, this.currentWave.getActiveEnemies());
+            }
         });
-
-        // Limpiar enemigos destruidos
-        this.enemies = this.enemies.filter(enemy => enemy.active);
     }
 }
