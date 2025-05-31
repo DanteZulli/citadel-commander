@@ -60,7 +60,8 @@ export class Game extends Scene {
         super('Game');
     }
 
-    create() {        this.camera = this.cameras.main;
+    create() {
+        this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x000000);
         
         // Start background music
@@ -69,6 +70,10 @@ export class Game extends Scene {
             loop: true
         });
         music.play();
+        
+        // Agregar el background
+        const background = this.add.sprite(400, 300, 'background');
+        background.setOrigin(0.5, 0.5);
         
         this.setupPath();
         this.setupTowerPositions();
