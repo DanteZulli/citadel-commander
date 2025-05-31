@@ -113,6 +113,9 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     }    public damage(amount: number): void {
         this.health -= amount;
         if (this.health <= 0) {
+            // Play death sound
+            this.scene.sound.play('enemy-death');
+            
             // Stop current movement
             if (this.currentTween) {
                 this.currentTween.stop();

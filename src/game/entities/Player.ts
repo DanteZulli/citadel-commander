@@ -108,6 +108,9 @@ export class Player extends Phaser.GameObjects.Container {
     private takeDamage(): void {
         if (this.isInvulnerable) return;
 
+        // Play hurt sound
+        this.scene.sound.play('player-hurt');
+
         // Notificar a la escena del daño
         this.scene.events.emit('playerDamaged');
         
@@ -159,6 +162,9 @@ export class Player extends Phaser.GameObjects.Container {
         // Comenzar animación de ataque
         this.isAttacking = true;
         const attackAnim = `player-attack-${this.currentDirection}`;
+        
+        // Play shoot sound
+        this.scene.sound.play('player-shoot');
         
         // Asegurarse de que el sprite esté volteado correctamente para el ataque
         if (this.currentDirection === 'side') {
