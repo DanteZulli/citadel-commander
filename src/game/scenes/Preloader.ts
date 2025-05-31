@@ -21,7 +21,35 @@ export class Preloader extends Scene
     preload ()
     {
         this.load.setPath('assets');
-        // Aquí cargaremos los assets del juego
+        
+        // Load goblin sprites
+        // Walk animations
+        this.load.spritesheet('goblin-walk-down', 'goblin/D_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('goblin-walk-side', 'goblin/S_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('goblin-walk-up', 'goblin/U_Walk.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+
+        // Death animations
+        this.load.spritesheet('goblin-death-down', 'goblin/D_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('goblin-death-side', 'goblin/S_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
+        this.load.spritesheet('goblin-death-up', 'goblin/U_Death.png', {
+            frameWidth: 48,
+            frameHeight: 48
+        });
     }
 
     create ()

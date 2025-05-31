@@ -1,14 +1,15 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { Turret } from '../entities/Turret';
-import { Enemy } from '../entities/Enemy';
+import { Goblin } from '../entities/Goblin';
 
 export class Game extends Scene {
     private lives: number = 20;
     private money: number = 100;
-    private camera: Phaser.Cameras.Scene2D.Camera;    private wave: number = 0;
+    private camera: Phaser.Cameras.Scene2D.Camera;
+    private wave: number = 0;
     private maxWaves: number = 3;
-    private enemies: Enemy[] = [];
+    private enemies: Goblin[] = [];
     private turrets: Turret[] = [];
     private towerPositions: Phaser.Math.Vector2[] = [];
     private enemyPath: Phaser.Math.Vector2[] = [];
@@ -30,7 +31,7 @@ export class Game extends Scene {
         this.setupTowerPositions();
         this.createUI();
           // Event handler para cuando un enemigo llega al final
-        this.events.on('enemyReachedEnd', (enemy: Enemy) => {
+        this.events.on('enemyReachedEnd', (_enemy: Goblin) => {
             this.lives--;
             this.updateUI();
             
@@ -40,7 +41,7 @@ export class Game extends Scene {
         });
 
         // Event handler para cuando un enemigo es eliminado
-        this.events.on('enemyKilled', (enemy: Enemy) => {
+        this.events.on('enemyKilled', (_enemy: Goblin) => {
             this.money += 15; // Recompensa de 15 por matar un enemigo
             this.updateUI();
         });
@@ -184,7 +185,7 @@ export class Game extends Scene {
         const spawnInterval = this.time.addEvent({
             delay: 1000,
             callback: () => {
-                const enemy = new Enemy(this, this.enemyPath);
+                const enemy = new Goblin(this, this.enemyPath);
                 this.enemies.push(enemy);
                 spawned++;
                 
