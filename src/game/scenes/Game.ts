@@ -7,6 +7,7 @@ import { Wave, WaveConfig } from '../entities/Wave';
 import { Player } from '../entities/Player';
 import { Turret } from '../entities/Turret';
 import { EventBus } from '../EventBus';
+import { GUI } from '../entities/GUI';
 
 export class Game extends Scene {
     private lives: number = 20;
@@ -20,6 +21,7 @@ export class Game extends Scene {
     private enemyPath: Phaser.Math.Vector2[] = [];
     private waveInProgress: boolean = false;
     private player: Player;
+    private gui: GUI;
 
     // Wave configurations
     private readonly waveConfigs: WaveConfig[] = [
@@ -58,18 +60,20 @@ export class Game extends Scene {
         super('Game');
     }
 
-    create() {
-        this.camera = this.cameras.main;
+    create() {        this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x000000);
-
-        // Asegurarse de que el estado está limpio al iniciar
-        this.resetGameState();
         
         this.setupPath();
         this.setupTowerPositions();
         
         // Crear el jugador
         this.player = new Player(this);
+
+        // Crear el GUI
+        this.gui = new GUI(this);
+
+        // Asegurarse de que el estado está limpio al iniciar
+        this.resetGameState();
 
         // Configurar tecla ENTER para iniciar oleada
         const enterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
@@ -149,6 +153,11 @@ export class Game extends Scene {
         // Limpiar el jugador
         if (this.player) {
             this.player.destroy();
+        }
+
+        // Limpiar el GUI
+        if (this.gui) {
+            this.gui.destroy();
         }
 
         // Resetear el estado del juego
@@ -392,18 +401,12 @@ export class Game extends Scene {
         this.updateUI();
 
         // Create and start new wave
-        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);
-        this.currentWave.start(() => {
+        this.currentWave = new Wave(this, this.enemyPath, this.waveConfigs[this.wave - 1]);        this.currentWave.start(() => {
             this.waveInProgress = false;
             this.updateUI();
             
-            // Check if there are more waves to start
-            if (this.wave < this.maxWaves) {
-                // Add a delay between waves
-                this.time.delayedCall(2000, () => {
-                    this.startWave();
-                });
-            } else {
+            // Check if this was the last wave
+            if (this.wave >= this.maxWaves) {
                 // Game completed!
                 this.time.delayedCall(1000, () => {
                     this.cleanupScene();
@@ -414,6 +417,9 @@ export class Game extends Scene {
     }
 
     private updateUI() {
+        // Actualizar el GUI en la escena
+        this.gui.updateStats(this.lives, this.money, this.wave, this.maxWaves);
+
         // Enviar actualización de stats al componente React
         window.dispatchEvent(new CustomEvent('gameStatsUpdate', {
             detail: {
@@ -450,6 +456,11 @@ export class Game extends Scene {
         this.updateUI();
     }
 
+    private handleWaveState(): void {
+        const canStartNewWave = !this.currentWave || this.currentWave.isComplete();
+        this.gui.showWavePrompt(canStartNewWave);
+    }
+
     update(time: number, delta: number) {
         // Actualizar la wave actual
         if (this.currentWave) {
@@ -467,5 +478,7 @@ export class Game extends Scene {
                 turret.update(time, this.currentWave.getActiveEnemies());
             }
         });
+
+        this.handleWaveState();
     }
 }

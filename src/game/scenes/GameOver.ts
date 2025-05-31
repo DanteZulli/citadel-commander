@@ -14,11 +14,10 @@ export class GameOver extends Scene
     {
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0xffffff);
-        
-        // Game Over text
+          // Game Over text
         this.add.text(512, 384, 'Game Over', {
-            fontFamily: 'Arial',
-            fontSize: '48px',
+            fontFamily: '"Press Start 2P"',
+            fontSize: '32px',
             color: '#000000'
         }).setOrigin(0.5);
         

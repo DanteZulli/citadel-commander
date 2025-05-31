@@ -23,6 +23,7 @@ export class Wave {
     private spawnTimer?: Phaser.Time.TimerEvent;
     private enemies: Enemy[] = [];
     private onWaveComplete?: () => void;
+    private isCompleted: boolean = false;
 
     constructor(scene: Scene, path: Phaser.Math.Vector2[], config: WaveConfig) {
         this.scene = scene;
@@ -51,6 +52,10 @@ export class Wave {
         return this.enemies.filter(enemy => enemy.active);
     }
 
+    public isComplete(): boolean {
+        return this.isCompleted;
+    }
+
     private spawnEnemy(): void {
         const EnemyType = this.selectEnemyType();
         const enemy = new EnemyType(this.scene, this.enemyPath);
@@ -77,6 +82,9 @@ export class Wave {
     public update(): void {
         // Check completion on each update in case enemies are destroyed between spawns
         this.checkWaveCompletion();
+        if (this.enemiesSpawned >= this.config.enemyCount && this.getActiveEnemies().length === 0) {
+            this.isCompleted = true;
+        }
     }
 
     private selectEnemyType(): typeof Goblin | typeof Slime | typeof Wolf {

@@ -7,19 +7,17 @@ export class MainMenu extends Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor(0x000000);
-
-        // Título del juego
+        this.cameras.main.setBackgroundColor(0x000000);        // Título del juego
         this.add.text(400, 200, 'CITADEL COMMANDER', {
-            fontFamily: 'Arial',
-            fontSize: '48px',
+            fontFamily: '"Press Start 2P"',
+            fontSize: '32px',
             color: '#ffffff'
         }).setOrigin(0.5);
 
         // Botón de jugar
         const gameText = this.add.text(400, 384, 'PLAY', {
-            fontFamily: 'Arial',
-            fontSize: '32px',
+            fontFamily: '"Press Start 2P"',
+            fontSize: '20px',
             color: '#ffffff',
             backgroundColor: '#333333',
             padding: { x: 20, y: 10 }
